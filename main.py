@@ -60,20 +60,23 @@ def show_selected_line(selected_line):
     window_width = int(screen_width * 0.6)
     window_height = int(screen_height * 0.6)
     root.geometry(f"{window_width}x{window_height}")
+    
+    lines_frame = tk.Frame(root)
+    lines_frame.pack(padx=10, pady=10)
 
-    lines_label = tk.Label(root, text="Lines above:")
-    lines_label.pack()
+    lines_label = tk.Label(lines_frame, text="Lines above:")
+    lines_label.pack(side=tk.LEFT)
 
-    lines_above_entry = tk.Entry(root)
+    lines_above_entry = tk.Entry(lines_frame)
     lines_above_entry.insert(0, def_above)
-    lines_above_entry.pack()
+    lines_above_entry.pack(side=tk.LEFT)
 
-    lines_label = tk.Label(root, text="Lines below:")
-    lines_label.pack()
+    lines_label = tk.Label(lines_frame, text="Lines below:")
+    lines_label.pack(side=tk.LEFT)
 
-    lines_below_entry = tk.Entry(root)
+    lines_below_entry = tk.Entry(lines_frame)
     lines_below_entry.insert(0, def_below)
-    lines_below_entry.pack()
+    lines_below_entry.pack(side=tk.LEFT)
 
     show_button = tk.Button(root, text="Gimme context!", command=show_lines)
     show_button.pack()
@@ -117,9 +120,19 @@ def search_next_query():
         new_window = Toplevel(root)
         new_window.title("NittyGritty(kitty litter)")
         new_window.geometry(f"{window_width}x{window_height}")
-        new_results_text = Text(new_window, wrap=tk.WORD, height=20, width=100)
-        new_results_text.pack(expand=True, fill=tk.BOTH)
+        
+        # Create a frame for organizing widgets in the popup window
+        popup_frame = tk.Frame(new_window)
+        popup_frame.pack(padx=10, pady=10, expand=True, fill=tk.BOTH)
+
+        new_results_text = Text(popup_frame, wrap=tk.WORD, height=20, width=100)
+        new_results_text.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
         new_results_text.config(state=tk.NORMAL)
+        
+        scrollbar = Scrollbar(popup_frame, orient=VERTICAL, command=new_results_text.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        new_results_text.config(yscrollcommand=scrollbar.set)
+
         for result in results:
             # Add a button for each line
             line_with_button = result + " "
@@ -129,12 +142,15 @@ def search_next_query():
         new_results_text.config(state=tk.DISABLED)
 
         # Subsequent query input and search button in the popup window
-        popup_next_query_label = tk.Label(new_window, text="Next query:")
+        popup_next_query_label = tk.Label(popup_frame, text="Next query:")
         popup_next_query_label.pack()
-        popup_next_query_entry = Entry(new_window)
+
+        popup_next_query_entry = Entry(popup_frame)
         popup_next_query_entry.pack()
-        popup_next_search_button = tk.Button(new_window, text="Search", command=lambda: search_popup_next_query(popup_next_query_entry, new_results_text))
+
+        popup_next_search_button = tk.Button(popup_frame, text="Search", command=lambda: search_popup_next_query(popup_next_query_entry, new_results_text))
         popup_next_search_button.pack()
+
 
 # Function to handle subsequent queries in the popup window
 def search_popup_next_query(query_entry, results_text):
@@ -147,7 +163,7 @@ def search_popup_next_query(query_entry, results_text):
         results_text.config(state=tk.NORMAL)
         results_text.delete(1.0, END)
         for result in results:
-            # results_text.insert(tk.END, result + "\n")
+            
             button = Button(results_text, text="Blammo!", command=lambda line=result: show_selected_line(result))
             results_text.window_create(tk.END, window=button)
             results_text.insert(tk.END, result + "\n")
@@ -159,36 +175,50 @@ def browse_directory():
     directory_path = filedialog.askdirectory()
     directory_label.config(text="Directory: " + directory_path)
 
+# Create frames to organize widgets
+directory_frame = tk.Frame(root)
+directory_frame.pack(pady=10)
+
+query_frame = tk.Frame(root)
+query_frame.pack(pady=10)
+
+results_frame = tk.Frame(root)
+results_frame.pack(expand=True, fill=tk.BOTH, pady=10)
+
 # Directory selection
-directory_label = tk.Label(root, text="Directory: " + directory_path)
-directory_label.pack()
-browse_button = tk.Button(root, text="Change", command=browse_directory)
-browse_button.pack()
+directory_label = tk.Label(directory_frame, text="Directory: " + directory_path)
+directory_label.pack(side=tk.LEFT)
+
+browse_button = tk.Button(directory_frame, text="Change", command=browse_directory)
+browse_button.pack(side=tk.RIGHT)
 
 # First query input and search button
-query_label = tk.Label(root, text="First query:")
-query_label.pack()
-query_entry = Entry(root)
-query_entry.pack()
-search_button = tk.Button(root, text="Search", command=search_first_query)
-search_button.pack()
+query_label = tk.Label(query_frame, text="First query:")
+query_label.pack(side=tk.LEFT)
+
+query_entry = Entry(query_frame)
+query_entry.pack(side=tk.LEFT)
+
+search_button = tk.Button(query_frame, text="Search", command=search_first_query)
+search_button.pack(side=tk.LEFT)
 
 # Text widget to display results of first query (scrollable and line wrapping)
-results_text = Text(root, wrap=tk.WORD, height=20, width=100)
-results_text.pack(expand=True, fill=tk.BOTH)
-results_text.config(state=tk.DISABLED)
-scrollbar = Scrollbar(results_text, orient=VERTICAL, command=results_text.yview)
+results_text = Text(results_frame, wrap=tk.WORD, height=20, width=100)
+results_text.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
+
+scrollbar = Scrollbar(results_frame, orient=VERTICAL, command=results_text.yview)
 scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 results_text.config(yscrollcommand=scrollbar.set)
 
 # Subsequent query input and search button
 next_query_label = tk.Label(root, text="Next query:")
 next_query_label.pack()
+
 next_query_entry = Entry(root)
 next_query_entry.pack()
+
 next_search_button = tk.Button(root, text="Search", command=search_next_query)
 next_search_button.pack()
-
 
 # Run the tkinter main loop
 root.mainloop()
