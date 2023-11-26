@@ -1,6 +1,8 @@
 import os
 import re
 import tkinter as tk
+
+from datetime import datetime
 from tkinter import filedialog, Scrollbar, Entry, Toplevel, Text, END, VERTICAL, Button, scrolledtext
 
 # What rolls down stairs
@@ -169,6 +171,12 @@ def search_popup_next_query(query_entry, results_text):
             results_text.insert(tk.END, result + "\n")
         results_text.config(state=tk.DISABLED)
 
+def get_current_day():
+    current_date = datetime.now()
+    day_of_year = current_date.timetuple().tm_yday
+    total_days = 366 if current_date.year % 4 == 0 and (current_date.year % 100 != 0 or current_date.year % 400 == 0) else 365
+    return current_date.year, day_of_year, total_days
+
 # Function to open a directory dialog and set the directory path
 def browse_directory():
     global directory_path
@@ -191,6 +199,10 @@ directory_label.pack(side=tk.LEFT)
 
 browse_button = tk.Button(directory_frame, text="Change", command=browse_directory)
 browse_button.pack(side=tk.RIGHT)
+
+year, current_day, total_days = get_current_day()
+day_display = tk.Label(root, text=f"Today is day {current_day} of {total_days}, year {year}")
+day_display.pack()
 
 # First query input and search button
 query_label = tk.Label(query_frame, text="First query:")
